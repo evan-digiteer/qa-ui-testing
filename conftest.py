@@ -1,8 +1,17 @@
 import pytest
+import logging
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from config.settings import TestConfig
+
+# Configure logging
+def pytest_configure(config):
+    logging.basicConfig(
+        level=logging.INFO,
+        format='[%(levelname)s] %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
 
 @pytest.fixture(scope="session")
 def driver():
