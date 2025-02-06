@@ -83,10 +83,13 @@ class VisualTest:
         diff = ImageEnhance.Brightness(diff).enhance(2.0)
         diff = ImageEnhance.Contrast(diff).enhance(2.0)
         
+        # Initialize difference percentage
+        diff_percentage = 0.0
+        
         # Calculate difference percentage
         bbox = diff.getbbox()
         if bbox:
-            # Create highlighted difference image
+            # Create highlighted difference image and composite regardless of difference
             highlight = Image.new('RGB', img1.size, (0, 0, 0))
             draw = ImageDraw.Draw(highlight)
             
@@ -98,22 +101,35 @@ class VisualTest:
                 for y in range(min_height):
                     r1, g1, b1 = img1.getpixel((x, y))
                     r2, g2, b2 = img2.getpixel((x, y))
-                    pixel_diff = (abs(r1-r2) + abs(g1-g2) + abs(b1-b2)) / 765.0  # 765 = 255*3
+                    pixel_diff = (abs(r1-r2) + abs(g1-g2) + abs(b1-b2)) / 765.0
                     if pixel_diff > (TestConfig.COMPARISON_THRESHOLD / 100.0):
                         draw.point((x, y), fill=(255, 0, 0))
                         different_pixels += 1
 
-            # Calculate and compare difference percentage
+            # Calculate difference percentage
             diff_percentage = (different_pixels / total_pixels) * 100
             print(f"Difference percentage: {diff_percentage:.2f}%")
             print(f"Height difference: {abs(height1 - height2)} pixels")
 
-            # Only return False if difference is above threshold
-            if diff_percentage > TestConfig.COMPARISON_THRESHOLD:
-                # Save images only if above threshold
-                highlight.save(diff_path)
-                composite_path = diff_path.replace('.png', '_composite.png')
-                composite.save(composite_path)
-                return False
-                
-            return True
+            # Always save both diff and composite images
+            highlight.save(diff_path)
+            
+            # Create and save composite image
+            composite = Image.new('RGB', (width1 * 3, min_height))
+            composite.paste(img1, (0, 0))
+            composite.paste(img2, (width1, 0))
+            composite.paste(highlight, (width1 * 2, 0))
+            
+            # Add labels to the composite image
+            draw = ImageDraw.Draw(composite)
+            font_size = 30
+            draw.text((10, 10), "Production", fill=(255, 255, 255), stroke_width=2, stroke_fill=(0, 0, 0))
+            draw.text((width1 + 10, 10), "Staging", fill=(255, 255, 255), stroke_width=2, stroke_fill=(0, 0, 0))
+            draw.text((width1 * 2 + 10, 10), f"Diff ({diff_percentage:.1f}%)", fill=(255, 255, 255), stroke_width=2, stroke_fill=(0, 0, 0))
+            
+            composite_path = diff_path.replace('.png', '_composite.png')
+            composite.save(composite_path)
+            print(f"Composite image saved to: {composite_path}")
+
+        # Return both the comparison result and difference percentage
+        return (diff_percentage <= TestConfig.COMPARISON_THRESHOLD, diff_percentage)

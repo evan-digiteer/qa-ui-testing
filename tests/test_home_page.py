@@ -1,17 +1,24 @@
 import pytest
 import time
+import logging
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from pages.home_page import HomePage
 from utils.visual_test import VisualTest
 from config.settings import TestConfig
 
+# Configure logging
+LOGGER = logging.getLogger(__name__)
+
 class TestEnvironmentComparison:
     @pytest.fixture
     def visual_test(self):
         return VisualTest()
 
-    def test_compare_environments(self, driver, visual_test):
+    def test_compare_environments(self, driver, visual_test, caplog):
+        # Set log level to INFO
+        caplog.set_level(logging.INFO)
+        
         # Setup pages for both environments
         prod_page = HomePage(driver, TestConfig.ENVIRONMENTS["production"])
         stage_page = HomePage(driver, TestConfig.ENVIRONMENTS["staging"])
@@ -35,16 +42,24 @@ class TestEnvironmentComparison:
         # Compare the environments
         diff_path = visual_test.get_diff_path("env_comparison")
         
-        comparison_result = visual_test.compare_screenshots(
+        comparison_result, diff_percentage = visual_test.compare_screenshots(
             prod_screenshot,
             stage_screenshot,
             diff_path
         )
         
+        # Log results for both pass and fail cases
+        result_message = (
+            f"\nComparison Results:\n"
+            f"Production: {prod_screenshot}\n"
+            f"Staging: {stage_screenshot}\n"
+            f"Difference: {diff_path}\n"
+            f"Composite: {diff_path.replace('.png', '_composite.png')}\n"
+            f"Difference Percentage: {diff_percentage:.2f}%\n"
+            f"Threshold: {TestConfig.COMPARISON_THRESHOLD}%"
+        )
+        
         if not comparison_result:
-            pytest.fail(
-                "Visual differences detected between environments.\n"
-                f"Production: {prod_screenshot}\n"
-                f"Staging: {stage_screenshot}\n"
-                f"Difference: {diff_path}"
-            )
+            pytest.fail(f"Visual differences exceeded threshold.{result_message}")
+        else:
+            LOGGER.info(f"Visual comparison passed!{result_message}")
