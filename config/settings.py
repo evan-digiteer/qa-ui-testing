@@ -11,4 +11,4 @@ class TestConfig:
     SCREENSHOT_HEIGHT = 1080
     
     # Comparison settings
-    COMPARISON_THRESHOLD = float(os.getenv('COMPARISON_THRESHOLD', '70.0'))  # Default 0.5% difference allowed
+    COMPARISON_THRESHOLD = float(os.getenv('COMPARISON_THRESHOLD', '50.0'))  # Default 0.5% difference allowed
