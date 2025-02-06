@@ -175,3 +175,15 @@ config/settings_local.py
 
 # Screenshots
 screenshots/
+
+# Generated reports
+report.html
+
+# Reports
+reports/
+
+# Keep report directory structure
+!reports/.gitkeep
+
+# Keep styles
+!assets/style.css
