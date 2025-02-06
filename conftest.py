@@ -1,12 +1,26 @@
 import pytest
 import logging
+import os
+from datetime import datetime
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from config.settings import TestConfig
 
-# Configure logging
+# Configure report directory
 def pytest_configure(config):
+    # Create reports directory with date-based structure
+    current_date = datetime.now().strftime("%Y-%m-%d")
+    current_time = datetime.now().strftime("%H-%M-%S")
+    report_dir = os.path.join("reports", current_date)
+    if not os.path.exists(report_dir):
+        os.makedirs(report_dir)
+    
+    # Set the HTML report path
+    report_path = os.path.join(report_dir, f"report_{current_time}.html")
+    config.option.htmlpath = report_path
+    
+    # Configure logging
     logging.basicConfig(
         level=logging.INFO,
         format='[%(levelname)s] %(message)s',
