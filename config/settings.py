@@ -2,8 +2,8 @@ import os
 
 class TestConfig:
     ENVIRONMENTS = {
-        "production": os.getenv('TEST_PROD_URL', 'https://www.marygracecafe.com'),
-        "staging": os.getenv('TEST_STAGE_URL', 'https://mary-grace-v24-staging-127c94b75d7c.herokuapp.com')
+        "production": os.getenv('TEST_PROD_URL', 'https://www.prod.com'),
+        "staging": os.getenv('TEST_STAGE_URL', 'https://www.staging.com')
     }
     
     # Browser settings
@@ -11,4 +11,4 @@ class TestConfig:
     SCREENSHOT_HEIGHT = 1080
     
     # Comparison settings
-    COMPARISON_THRESHOLD = float(os.getenv('COMPARISON_THRESHOLD', '50.0'))  # Default 0.5% difference allowed
+    COMPARISON_THRESHOLD = float(os.getenv('COMPARISON_THRESHOLD', '50.0'))  
